@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC
+    "-//W3C//DTD XHTML 1.1 plus MathML 2.0 plus SVG 1.1//EN"
+    "http://www.w3.org/2002/04/xhtml-math-svg/xhtml-math-svg.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xml:lang="en">
+<head><meta http-equiv="Content-type" content="application/xhtml+xml;charset=utf-8" /><title>variant and optional should propagate copy/move triviality</title></head>
+<body><!-- maruku -o trivially_variant.html trivially_variant.md --><style type='text/css'>
+pre { margin: 0; }
+pre code { display: block; margin-left: 2em; }
+div { display: block; margin-left: 2em; }
+ins { text-decoration: underline; background-color: #A0FFA0 }
+del { text-decoration: line-through; background-color: #FFA0A0 }
+</style><table><tbody>
+<tr><th>Doc. no.:</th>	<td>PXXXXR0</td></tr>
+<tr><th>Date:</th>	<td>2017-02-04</td></tr>
+<tr><th>Audience:</th>	<td>Library Evolution Working Group</td></tr>
+<tr><th>Reply-to:</th>	<td>Zhihao Yuan &lt;zy at miator dot net&gt;</td></tr>
+</tbody></table>
+<h1 id="variant_and_optional_should_propagate_copymove_triviality">variant and optional should propagate copy/move triviality</h1>
+
+<h2 id="rationale">Rationale</h2>
+
+<p>Making <code>variant</code> and <code>optional</code> conditionally trivially copy constructible, trivially move constructible, trivially copy assignable, and trivially move assignable significantly improves codegen and performance when they are nested or being put into containers.</p>
+
+<p>MS STL <code>variant</code> makes those four operations trivial if present while all alternatives are trivially copyable. libc<small>++</small> makes them individually trivial if all alternatives have the corresponding operations being trivial. Balancing the implementation complexity and the usefulness in practice, MS STL’s approach is proposed here. This approach is forward-compatible with libc<small>++</small>‘s full-fledged approach.</p>
+
+<h2 id="wording">Wording</h2>
+
+<p>This wording is relative to N4618.</p>
+
+<p>Modify 20.6.3.1 [optional.ctor] as follows:</p>
+
+<pre><code>optional(const optional&amp; rhs);</code></pre>
+
+<blockquote>
+<p>[…]</p>
+
+<p><em>Remarks:</em> This constructor shall be defined as deleted unless <code>is_copy_constructible_v&lt;T&gt;</code> is <code>true</code>. <ins>If not deleted, this constructor shall be trivial if
+<tt>is_trivially_copyable_v&lt;T&gt;</tt> is <code>true</code>.</ins></p>
+</blockquote>
+
+<pre><code>optional(optional&amp;&amp; rhs) noexcept(see below );</code></pre>
+
+<blockquote>
+<p>[…]</p>
+
+<p><em>Remarks:</em> The expression inside <code>noexcept</code> is equivalent to <code>is_nothrow_move_constructible_v&lt;T&gt;</code>. This constructor shall not participate in overload resolution unless <code>is_move_constructible_v&lt;T&gt;</code> is <code>true</code>. <ins>If it does, this constructor shall be trivial if
+<tt>is_trivially_copyable_v&lt;T&gt;</tt> is <code>true</code>.</ins></p>
+</blockquote>
+
+<p>Modify 20.6.3.3 [optional.assign] as follows:</p>
+
+<pre><code>optional&lt;T&gt;&amp; operator=(const optional&amp; rhs);</code></pre>
+
+<blockquote>
+<p>[…]</p>
+
+<p><em>Remarks:</em> If any exception is thrown, […]. This operator shall be defined as deleted unless <code>is_copy_constructible_v&lt;T&gt;</code> is <code>true</code> and <code>is_copy_assignable_v&lt;T&gt;</code> is <code>true</code>. <ins>If not deleted, this assignment operator shall be trivial if
+<tt>is_trivially_copyable_v&lt;T&gt;</tt> is <code>true</code>.</ins></p>
+</blockquote>
+
+<pre><code>optional&lt;T&gt;&amp; operator=(optional&amp;&amp; rhs) noexcept(see below );</code></pre>
+
+<blockquote>
+<p>[…]</p>
+
+<p><em>Remarks:</em> The expression inside noexcept is equivalent to: […] This operator shall not participate in overload resolution unless <code>is_move_constructible_v&lt;T&gt;</code> is <code>true</code> and <code>is_move_assignable_v&lt;T&gt;</code> is <code>true</code>. <ins>If it does, this assignment operator shall be trivial if
+<tt>is_trivially_copyable_v&lt;T&gt;</tt> is <code>true</code>.</ins></p>
+</blockquote>
+
+<p>Modify 20.7.2.1 [variant.ctor] as follows:</p>
+
+<pre><code>variant(const variant&amp; w);</code></pre>
+
+<blockquote>
+<p>[…]</p>
+
+<p><em>Remarks:</em> This <del>function shall not participate in overload resolution</del> <ins>constructor shall be defined as deleted</ins> unless <code>is_copy_constructible_v&lt;Ti&gt;</code> is <code>true</code> for all <em>i</em>. <ins>If not deleted, this constructor shall be trivial if
+<tt>is_trivially_copyable_v&lt;T</tt><i><sub>i</sub></i><tt>&gt;</tt>
+is <code>true</code> for all <em>i</em>.</ins></p>
+</blockquote>
+
+<pre><code>variant(variant&amp;&amp; w) noexcept(see below );</code></pre>
+
+<blockquote>
+<p>[…]</p>
+
+<p><em>Remarks:</em> The expression inside <code>noexcept</code> is equivalent to […]. This function shall not participate in overload resolution unless <code>is_move_constructible_v&lt;T</code><i><sub>i</sub></i><code>&gt;</code> is true for all <em>i</em>. <ins>If it does, this constructor shall be trivial if
+<tt>is_trivially_copyable_v&lt;T</tt><i><sub>i</sub></i><tt>&gt;</tt>
+is <code>true</code> for all <em>i</em>.</ins></p>
+</blockquote>
+
+<p>Modify 20.7.2.3 [variant.assign] as follows:</p>
+
+<pre><code>variant&amp; operator=(const variant&amp; rhs);</code></pre>
+
+<blockquote>
+<p>[…]</p>
+
+<p><em>Remarks:</em> This <del>function shall not participate in overload resolution</del> <ins>operator shall be defined as deleted</ins> unless <code>is_copy_constructible_v&lt;T</code><i><sub>i</sub></i><code>&gt; &amp;&amp;</code> <code>is_move_constructible_v&lt;T</code><i><sub>i</sub></i><code>&gt; &amp;&amp;</code> <code>is_copy_assignable_v&lt;T</code><i><sub>i</sub></i><code>&gt;</code> is <code>true</code> for all <em>i</em>. <ins>If not deleted, this assignment operator shall be trivial if
+<tt>is_trivially_copyable_v&lt;T</tt><i><sub>i</sub></i><tt>&gt;</tt>
+is <code>true</code> for all <em>i</em>.</ins> […]</p>
+</blockquote>
+
+<pre><code>variant&amp; operator=(variant&amp;&amp; rhs) noexcept(see below );</code></pre>
+
+<blockquote>
+<p>[…]</p>
+
+<p><em>Remarks:</em> This function shall not participate in overload resolution unless <code>is_move_constructible_v&lt;T</code><i><sub>i</sub></i><code>&gt; &amp;&amp;</code> <code>is_move_assignable_v&lt;T</code><i><sub>i</sub></i><code>&gt;</code> is <code>true</code> for all <em>i</em>. <ins>If it does, this assignment operator shall be trivial if
+<tt>is_trivially_copyable_v&lt;T</tt><i><sub>i</sub></i><tt>&gt;</tt>
+is <code>true</code> for all <em>i</em>.</ins> The expression inside <code>noexcept</code> is equivalent to: […]</p>
+</blockquote>
+</body></html>
