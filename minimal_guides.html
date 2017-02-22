@@ -20,7 +20,7 @@ del { text-decoration: line-through; background-color: #FFA0A0 }
 
 <h2 id="abstract">Abstract</h2>
 
-<p>I propose to gracefully roll out the class template argument deduction capability and explicitly document all the deduction guides throughout the standard library. This paper contains the initial guides that I considered “ready” and necessary for C++17.</p>
+<p>I propose to gracefully roll out the class template argument deduction capability and explicitly document all the deduction guides throughout the standard library. This paper contains the initial guides that I considered necessary for C++17.</p>
 
 <p>This paper has all the changes from <a href="http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2016/p0511r0.html">P0511R0</a> and <a href="http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2017/p0560r0.html">P0560R0</a>.</p>
 
@@ -60,11 +60,19 @@ del { text-decoration: line-through; background-color: #FFA0A0 }
 </li>
 
 <li>
+<p>Deducing <code>basic_string</code> and <code>basic_string_view</code> from character arrays, and deducing <code>complex</code> from floating point types have overlapping in functionality with their user-defined literals.</p>
+</li>
+
+<li>
 <p>Missing <code>lock_guard</code> wording updates.</p>
 </li>
 
 <li>
 <p>Self-guides are placed for <code>unique_lock</code> and <code>shared_lock</code> to prevent accidentally creating <code>unique_lock&lt;unique_lock&lt;T&gt;&gt;</code>; <code>stack</code> and <code>queue</code> do not need those guides because themselves do not satisfy the requirements for their inputs.</p>
+</li>
+
+<li>
+<p><code>shared_future</code> is not deduced from <code>future</code> because we have <code>future::share()</code>.</p>
 </li>
 </ul>
 
