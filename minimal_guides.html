@@ -307,7 +307,7 @@ del { text-decoration: line-through; background-color: #FFA0A0 }
   };
 </code></pre><pre><code><ins>
   template &lt;class Container&gt;
-    queue(Container) -&gt; queue&lt;Container&gt;;
+    queue(Container) -&gt; queue&lt;typename Container::value_type, Container&gt;;
 </ins></code></pre>
 <p>Add the following signature to 23.6.6.1 [stack.defn]:</p>
 <pre><code>    void swap(stack&amp; q) noexcept(is_nothrow_swappable_v&lt;Container&gt;)
@@ -315,7 +315,7 @@ del { text-decoration: line-through; background-color: #FFA0A0 }
   };
 </code></pre><pre><code><ins>
   template &lt;class Container&gt;
-    stack(Container) -&gt; stack&lt;Container&gt;;
+    stack(Container) -&gt; stack&lt;typename Container::value_type, Container&gt;;
 </ins></code></pre>
 <p>Add the following signature to 21.3.2 [basic.string]/5:</p>
 <pre><code>    int compare(size_type pos1, size_type n1,
