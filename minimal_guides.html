@@ -74,6 +74,10 @@ del { text-decoration: line-through; background-color: #FFA0A0 }
 <li>
 <p><code>shared_future</code> is not deduced from <code>future</code> because we have <code>future::share()</code>.</p>
 </li>
+
+<li>
+<p>Not deducing smart pointers from raw pointers due to <code>new T[]</code>. Deducing <code>shared_ptr</code> from <code>weak_ptr</code> has overlapping in functionality with <code>weak_ptr::lock()</code>. Only the most common uses are considered at this moment.</p>
+</li>
 </ul>
 
 <h2 id="wording">Wording</h2>
@@ -339,6 +343,20 @@ del { text-decoration: line-through; background-color: #FFA0A0 }
     shared_lock(Mutex, Args...) -&gt; shared_lock&lt;Mutex&gt;;
   template &lt;class Mutex&gt;
     shared_lock(shared_lock&lt;Mutex&gt;) -&gt; shared_lock&lt;Mutex&gt; = delete;
+</ins></code></pre>
+<p>Add the following signature to 20.11.2.2 [util.smartptr.shared]/1:</p>
+<pre><code>    template&lt;class U&gt; bool owner_before(const weak_ptr&lt;U&gt;&amp; b) const;
+  };
+</code></pre><pre><code><ins>
+  template &lt;class T, class D&gt;
+    shared_ptr(unique_ptr&lt;T, D&gt;) -&gt; shared_ptr&lt;T&gt;;
+</ins></code></pre>
+<p>Add the following signature to 20.11.2.3 [util.smartptr.weak]/1:</p>
+<pre><code>    template&lt;class U&gt; bool owner_before(const weak_ptr&lt;U&gt;&amp; b) const;
+  };
+</code></pre><pre><code><ins>
+  template &lt;class T&gt;
+    weak_ptr(shared_ptr&lt;T&gt;) -&gt; weak_ptr&lt;T&gt;;
 </ins></code></pre>
 <p>Insert the following signatures to 20.14.1 [functional.syn]:</p>
 <pre><code>  <i>// 20.14.6, arithmetic operations</i>
