@@ -1,0 +1,375 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC
+    "-//W3C//DTD XHTML 1.1 plus MathML 2.0 plus SVG 1.1//EN"
+    "http://www.w3.org/2002/04/xhtml-math-svg/xhtml-math-svg.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" xml:lang="en">
+<head><meta http-equiv="Content-type" content="application/xhtml+xml;charset=utf-8" /><title>Initial deduction guides for the standard library</title></head>
+<body><!-- maruku -o minimal_guides.html minimal_guides.md --><style type='text/css'>
+pre { margin: 0; }
+pre code { display: block; margin-left: 2em; }
+div { display: block; margin-left: 2em; }
+ins { text-decoration: none; font-weight: bold; background-color: #A0FFA0 }
+del { text-decoration: line-through; background-color: #FFA0A0 }
+</style><table><tbody>
+<tr><th>Doc. no.:</th>	<td>DXXXXR0</td></tr>
+<tr><th>Date:</th>	<td>2017-02-21</td></tr>
+<tr><th>Audience:</th>	<td>Library Evolution Working Group</td></tr>
+<tr><th>Reply-to:</th>	<td>Zhihao Yuan &lt;zy at miator dot net&gt;</td></tr>
+</tbody></table>
+<h1 id="initial_deduction_guides_for_the_standard_library">Initial deduction guides for the standard library</h1>
+
+<h2 id="abstract">Abstract</h2>
+
+<p>I propose to gracefully roll out the class template argument deduction capability and explicitly document all the deduction guides throughout the standard library. This paper contains the initial guides that I considered “ready” and necessary for C++17.</p>
+
+<p>This paper has all the changes from <a href="http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2016/p0511r0.html">P0511R0</a> and <a href="http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2017/p0560r0.html">P0560R0</a>.</p>
+
+<h2 id="design_notes">Design Notes</h2>
+
+<ul>
+<li>
+<p>The random distributions have two use patterns: 1) provide all the mathematical parameters at construction time; 2) supply those parameters in each invocation of the call operator. The deduction guides are designed to support these two patterns, and all parameters are required in 1) <strong>for now</strong> to reduce the possibility of passing arguments of heterogeneous types to interfaces for homogeneous types or creating unhelpful distributions.</p>
+</li>
+
+<li>
+<p>Sampling distributions requires expertise to figure out the most helpful deduction guides.</p>
+</li>
+
+<li>
+<p>The STL containers are only deduced from <code>initializer_list</code>s for now, because:</p>
+
+<ul>
+<li>the constructors accepting <code>Compare</code>, <code>Hash</code>, <code>Allocator</code> etc. produce containers with the same salient properties but of different types, which may be supprising when no template argument presents. I suggest to defer adoption of deduction guides working with those template parameters;</li>
+
+<li>the constructors creating <code>n</code> number of elements have always been fragile. I suggest to leave those deduction guides for future extensions;</li>
+
+<li>the constructors creating containers from ranges seem to be more helpful when some conversions between the <code>value_type</code>s are expected in my experience. I suggest to revisit this part later, maybe along with the Ranges TS.</li>
+</ul>
+</li>
+
+<li>
+<p><code>set</code> and <code>multiset</code> use transparent comparators (<code>less&lt;&gt;</code>) by default.</p>
+</li>
+
+<li>
+<p>Deducing nested <em>braced-init-list</em> does not work well for <code>map</code>, <code>multimap</code>, <code>unordered_map</code>, and <code>unordered_multimap</code>, so they do not receive class template argument deduction at this moment.</p>
+</li>
+
+<li>
+<p><code>basic_string_view</code> → <code>basic_string</code> seems to be the most helpful guide, because it fills the hole of <code>basic_string_view::to_string</code> that exists in the TS but missing from the standard.</p>
+</li>
+
+<li>
+<p>Missing <code>lock_guard</code> wording updates.</p>
+</li>
+
+<li>
+<p>Self-guides are placed for <code>unique_lock</code> and <code>shared_lock</code> to prevent accidentally creating <code>unique_lock&lt;unique_lock&lt;T&gt;&gt;</code>; <code>stack</code> and <code>queue</code> do not need those guides because themselves do not satisfy the requirements for their inputs.</p>
+</li>
+</ul>
+
+<h2 id="wording">Wording</h2>
+
+<p>This wording is relative to N4640.</p>
+
+<p>Add the following signature to 20.4.2 [pairs.pair]:</p>
+<pre><code>    void swap(pair&amp; p) noexcept(<i>see below</i> );
+  };
+</code></pre><pre><code><ins>
+  template &lt;class T1, class T2&gt;
+    pair(T1, T2) -&gt; pair&lt;T1, T2&gt;;
+</ins></code></pre><pre><code>}
+</code></pre>
+<p>Add the following signature to 20.5.3 [tuple.tuple]:</p>
+<pre><code>    void swap(tuple&amp; p) noexcept(<i>see below</i> );
+  };
+</code></pre><pre><code><ins>
+  template &lt;class... UTypes&gt;
+    tuple(UTypes...) -&gt; tuple&lt;Utypes...&gt;;
+</ins></code></pre><pre><code>}
+</code></pre>
+<p>Add the following signature to 23.3.7.1 [array.overview]/3:</p>
+<pre><code>    constexpr const T * data() const noexcept;
+  };
+</code></pre><pre><code><ins>
+  template &lt;class... T&gt;
+    array(T...) -&gt; array&lt;<i>see below</i>, sizeof...(T)&gt;;
+</ins></code></pre><pre><code>}
+</code></pre>
+<p>Add the following as paragraph 2 to 23.3.7.2 [array.cons]:</p>
+<pre><code>  template &lt;class... T&gt;
+    array(T...) -&gt; array&lt;<i>D</i>, sizeof...(T)&gt;;
+</code></pre>
+<blockquote>
+<p><em>Remarks:</em> <em><code>D</code></em> is <code>T</code><i><sub>0</sub></i> and <code>is_same_v&lt;</code><em><code>D</code></em><code>, </code><code>T</code><i><sub>i</sub></i><code>&gt;</code> is <code>true</code> for all <em>i</em>. If there is no such <em><code>D</code></em>, the program is ill-formed.</p>
+</blockquote>
+
+<p>Add the following signature to 20.6.3 [optional.optional]:</p>
+<pre><code>    T &#42;val; <i>// exposition only</i>
+  };
+</code></pre><pre><code><ins>
+  template &lt;class T&gt;
+    optional(T) -&gt; optional&lt;T&gt;;
+</ins></code></pre>
+<p>Add the following signature to 24.5.1.1 [reverse.iterator]:</p>
+<pre><code>    Iterator current;
+  };
+</code></pre><pre><code><ins>
+  template &lt;class Iterator&gt;
+    reverse_iterator(Iterator) -&gt; reverse_iterator&lt;Iterator&gt;;
+</ins></code></pre>
+<p>Add the following signature to 24.5.3.1 [move.iterator]:</p>
+<pre><code>    Iterator current; <i>// exposition only</i>
+  };
+</code></pre><pre><code><ins>
+  template &lt;class Iterator&gt;
+    move_iterator(Iterator) -&gt; move_iterator&lt;Iterator&gt;;
+</ins></code></pre>
+<p>Add the following signature to 20.14.14.1 [func.search.default]:</p>
+<pre><code>    BinaryPredicate pred&#95;; <i>// exposition only</i>
+  };
+</code></pre><pre><code><ins>
+  template &lt;class ForwardIterator, class... Args&gt;
+    default_searcher(ForwardIterator, ForwardIterator, Args...) -&gt;
+    default_searcher&lt;ForwardIterator, Args...&gt;;
+</ins></code></pre>
+<p>Remove section 20.14.14.1.1 [func.search.default.creation] and its content from 20.14.1 [functional.syn].</p>
+
+<p>Add the following signature to 20.14.14.2 [func.search.bm]:</p>
+<pre><code>    BinaryPredicate pred&#95;; <i>// exposition only</i>
+  };
+</code></pre><pre><code><ins>
+  template &lt;class RandomAccessIterator, class... Args&gt;
+    boyer_moore_searcher(RandomAccessIterator,
+                         RandomAccessIterator, Args...) -&gt;
+    boyer_moore_searcher&lt;RandomAccessIterator, Args...&gt;;
+</ins></code></pre>
+<p>Remove section 20.14.14.2.1 [func.search.bm.creation] and its content from 20.14.1 [functional.syn].</p>
+
+<p>Add the following signature to 20.14.14.3 [func.search.bmh]:</p>
+<pre><code>    BinaryPredicate pred&#95;; <i>// exposition only</i>
+  };
+</code></pre><pre><code><ins>
+  template &lt;class RandomAccessIterator, class... Args&gt;
+    boyer_moore_horspool_searcher(RandomAccessIterator,
+                                  RandomAccessIterator, Args...) -&gt;
+    boyer_moore_horspool_searcher&lt;RandomAccessIterator, Args...&gt;;
+</ins></code></pre>
+<p>Remove section 20.14.14.3.1 [func.search.bmh.creation] and its content from 20.14.1 [functional.syn].</p>
+
+<p>Add the following signatures to 26.6.8 [rand.dist] after each corresponding class template definitions.</p>
+<pre><code><ins>
+  uniform_int_distribution() -&gt; uniform_int_distribution&lt;&gt;;
+  template&lt;class IntType&gt;
+    uniform_int_distribution(IntType, IntType) -&gt;
+    uniform_int_distribution&lt;IntType&gt;;
+</ins></code></pre><pre><code><ins>
+  uniform_real_distribution() -&gt; uniform_real_distribution&lt;&gt;;
+  template&lt;class RealType&gt;
+    uniform_real_distribution(RealType, RealType) -&gt;
+    uniform_real_distribution&lt;RealType&gt;;
+</ins></code></pre><pre><code><ins>
+  binomial_distribution() -&gt; binomial_distribution&lt;&gt;;
+  template&lt;class IntType&gt;
+    binomial_distribution(IntType, double) -&gt; binomial_distribution&lt;IntType&gt;;
+</ins></code></pre><pre><code><ins>
+  geometric_distribution() -&gt; geometric_distribution&lt;&gt;;
+</ins></code></pre><pre><code><ins>
+  negative_binomial_distribution() -&gt; negative_binomial_distribution&lt;&gt;;
+  template&lt;class IntType&gt;
+    negative_binomial_distribution(IntType, double) -&gt;
+    negative_binomial_distribution&lt;IntType&gt;;
+</ins></code></pre><pre><code><ins>
+  poisson_distribution() -&gt; poisson_distribution&lt;&gt;;
+</ins></code></pre><pre><code><ins>
+  exponential_distribution() -&gt; exponential_distribution&lt;&gt;;
+  template&lt;class RealType&gt;
+    exponential_distribution(RealType) -&gt; exponential_distribution&lt;RealType&gt;;
+</ins></code></pre><pre><code><ins>
+  gamma_distribution() -&gt; gamma_distribution&lt;&gt;;
+  template&lt;class RealType&gt;
+    gamma_distribution(RealType, RealType) -&gt; gamma_distribution&lt;RealType&gt;;
+</ins></code></pre><pre><code><ins>
+  weibull_distribution() -&gt; weibull_distribution&lt;&gt;;
+  template&lt;class RealType&gt;
+    weibull_distribution(RealType, RealType) -&gt; weibull_distribution&lt;RealType&gt;;
+</ins></code></pre><pre><code><ins>
+  extreme_value_distribution() -&gt; extreme_value_distribution&lt;&gt;;
+  template&lt;class RealType&gt;
+    extreme_value_distribution(RealType, RealType) -&gt;
+    extreme_value_distribution&lt;RealType&gt;;
+</ins></code></pre><pre><code><ins>
+  normal_distribution() -&gt; normal_distribution&lt;&gt;;
+  template&lt;class RealType&gt;
+    normal_distribution(RealType, RealType) -&gt; normal_distribution&lt;RealType&gt;;
+</ins></code></pre><pre><code><ins>
+  lognormal_distribution() -&gt; lognormal_distribution&lt;&gt;;
+  template&lt;class RealType&gt;
+    lognormal_distribution(RealType, RealType) -&gt;
+    lognormal_distribution&lt;RealType&gt;;
+</ins></code></pre><pre><code><ins>
+  chi_squared_distribution() -&gt; chi_squared_distribution&lt;&gt;;
+  template&lt;class RealType&gt;
+    chi_squared_distribution(RealType) -&gt; chi_squared_distribution&lt;RealType&gt;;
+</ins></code></pre><pre><code><ins>
+  cauchy_distribution() -&gt; cauchy_distribution&lt;&gt;;
+  template&lt;class RealType&gt;
+    cauchy_distribution(RealType, RealType) -&gt; cauchy_distribution&lt;RealType&gt;;
+</ins></code></pre><pre><code><ins>
+  fisher_f_distribution() -&gt; fisher_f_distribution&lt;&gt;;
+  template&lt;class RealType&gt;
+    fisher_f_distribution(RealType, RealType) -&gt;
+    fisher_f_distribution&lt;RealType&gt;;
+</ins></code></pre><pre><code><ins>
+  student_t_distribution() -&gt; student_t_distribution&lt;&gt;;
+  template&lt;class RealType&gt;
+    student_t_distribution(RealType) -&gt; student_t_distribution&lt;RealType&gt;;
+</ins></code></pre><pre><code><ins>
+  discrete_distribution() -&gt; discrete_distribution&lt;&gt;;
+</ins></code></pre><pre><code><ins>
+  piecewise_constant_distribution() -&gt; piecewise_constant_distribution&lt;&gt;;
+</ins></code></pre><pre><code><ins>
+  piecewise_linear_distribution() -&gt; piecewise_linear_distribution&lt;&gt;;
+</ins></code></pre>
+<p>Add the following signature to 23.3.11.1 [vector.overview]/2:</p>
+<pre><code>    void clear() noexcept;
+  };
+</code></pre><pre><code><ins>
+  template &lt;class T&gt;
+    vector(initializer_list&lt;T&gt;) -&gt; vector&lt;T&gt;;
+</ins></code></pre>
+<p>Add the following signature to 23.3.8.1 [deque.overview]/2:</p>
+<pre><code>    void clear() noexcept;
+  };
+</code></pre><pre><code><ins>
+  template &lt;class T&gt;
+    deque(initializer_list&lt;T&gt;) -&gt; deque&lt;T&gt;;
+</ins></code></pre>
+<p>Add the following signature to 23.3.9.1 [forwardlist.overview]/3:</p>
+<pre><code>    void reverse() noexcept;
+  };
+</code></pre><pre><code><ins>
+  template &lt;class T&gt;
+    forward_list(initializer_list&lt;T&gt;) -&gt; forward_list&lt;T&gt;;
+</ins></code></pre>
+<p>Add the following signature to 23.3.10.1 [list.overview]/2:</p>
+<pre><code>    void reverse() noexcept;
+  };
+</code></pre><pre><code><ins>
+  template &lt;class T&gt;
+    list(initializer_list&lt;T&gt;) -&gt; list&lt;T&gt;;
+</ins></code></pre>
+<p>Add the following signature to 23.4.6.1 [set.overview]/2:</p>
+<pre><code>    template &lt;class K&gt;
+    pair&lt;const_iterator, const_iterator&gt; equal_range(const K&amp; x) const;
+  };
+</code></pre><pre><code><ins>
+  template &lt;class T&gt;
+    set(initializer_list&lt;T&gt;) -&gt; set&lt;T, less&lt;&gt;&gt;;
+</ins></code></pre>
+<p>Add the following signature to 23.4.7.1 [multiset.overview]/2:</p>
+<pre><code>    template &lt;class K&gt;
+    pair&lt;const_iterator, const_iterator&gt; equal_range(const K&amp; x) const;
+  };
+</code></pre><pre><code><ins>
+  template &lt;class T&gt;
+    multiset(initializer_list&lt;T&gt;) -&gt; multiset&lt;T, less&lt;&gt;&gt;;
+</ins></code></pre>
+<p>Add the following signature to 23.5.6.1 [unord.set.overview]/3:</p>
+<pre><code>    void reserve(size_type n);
+  };
+</code></pre><pre><code><ins>
+  template &lt;class T&gt;
+    unordered_set(initializer_list&lt;T&gt;) -&gt; unordered_set&lt;T&gt;;
+</ins></code></pre>
+<p>Add the following signature to 23.5.7.1 [unord.multiset.overview]/3:</p>
+<pre><code>    void reserve(size_type n);
+  };
+</code></pre><pre><code><ins>
+  template &lt;class T&gt;
+    unordered_multiset(initializer_list&lt;T&gt;) -&gt; unordered_multiset&lt;T&gt;;
+</ins></code></pre>
+<p>Add the following signature to 23.6.4.1 [queue.defn]:</p>
+<pre><code>    void swap(queue&amp; q) noexcept(is_nothrow_swappable_v&lt;Container&gt;)
+      { using std::swap; swap(c, q.c); }
+  };
+</code></pre><pre><code><ins>
+  template &lt;class Container&gt;
+    queue(Container) -&gt; queue&lt;Container&gt;;
+</ins></code></pre>
+<p>Add the following signature to 23.6.6.1 [stack.defn]:</p>
+<pre><code>    void swap(stack&amp; q) noexcept(is_nothrow_swappable_v&lt;Container&gt;)
+      { using std::swap; swap(c, q.c); }
+  };
+</code></pre><pre><code><ins>
+  template &lt;class Container&gt;
+    stack(Container) -&gt; stack&lt;Container&gt;;
+</ins></code></pre>
+<p>Add the following signature to 21.3.2 [basic.string]/5:</p>
+<pre><code>    int compare(size_type pos1, size_type n1,
+                const charT&#42; s, size_type n2) const;
+  };
+</code></pre><pre><code><ins>
+  template&lt;class charT, class traits&gt;
+    basic_string(basic_string_view&lt;charT, traits&gt;) -&gt;
+    basic_string&lt;charT, traits&gt;;
+</ins></code></pre>
+<p>Add the following signature to 30.4.4.2 [thread.lock.unique]:</p>
+<pre><code>    bool owns; <i>// exposition only</i>
+  };
+</code></pre><pre><code><ins>
+  template &lt;class Mutex, class... Args&gt;
+    unique_lock(Mutex, Args...) -&gt; unique_lock&lt;Mutex&gt;;
+  template &lt;class Mutex&gt;
+    unique_lock(unique_lock&lt;Mutex&gt;) -&gt; unique_lock&lt;Mutex&gt; = delete;
+</ins></code></pre>
+<p>Add the following signature to 30.4.4.3 [thread.lock.shared]:</p>
+<pre><code>    bool owns; <i>// exposition only</i>
+  };
+</code></pre><pre><code><ins>
+  template &lt;class Mutex, class... Args&gt;
+    shared_lock(Mutex, Args...) -&gt; shared_lock&lt;Mutex&gt;;
+  template &lt;class Mutex&gt;
+    shared_lock(shared_lock&lt;Mutex&gt;) -&gt; shared_lock&lt;Mutex&gt; = delete;
+</ins></code></pre>
+<p>Insert the following signatures to 20.14.1 [functional.syn]:</p>
+<pre><code>  <i>// 20.14.6, arithmetic operations</i>
+  [&hellip;]
+  template &lt;&gt; struct negate&lt;void&gt;;
+</code></pre><pre><code><ins>
+  plus()       -&gt; plus&lt;&gt;;
+  minus()      -&gt; minus&lt;&gt;;
+  multiplies() -&gt; multiplies&lt;&gt;;
+  divides()    -&gt; divides&lt;&gt;;
+  modulus()    -&gt; modulus&lt;&gt;;
+  negate()     -&gt; negate&lt;&gt;;
+</ins></code>
+</pre><pre><code>  <i>// 20.14.7, comparisons</i>
+  [&hellip;]
+  template &lt;&gt; struct less_equal&lt;void&gt;;
+</code></pre><pre><code><ins>
+  equal_to()      -&gt; equal_to&lt;&gt;;
+  not_equal_to()  -&gt; not_equal_to&lt;&gt;;
+  greater()       -&gt; greater&lt;&gt;;
+  less()          -&gt; less&lt;&gt;;
+  greater_equal() -&gt; greater_equal&lt;&gt;;
+  less_equal()    -&gt; less_equal&lt;&gt;;
+</ins></code>
+</pre><pre><code>  <i>// 20.14.8, logical operations</i>
+  [&hellip;]
+  template &lt;&gt; struct logical_not&lt;void&gt;;
+</code></pre><pre><code><ins>
+  logical_and() -&gt; logical_and&lt;&gt;;
+  logical_or()  -&gt; logical_or&lt;&gt;;
+  logical_not() -&gt; logical_not&lt;&gt;;
+</ins></code>
+</pre><pre><code>  <i>// 20.14.9, bitwise operations</i>
+  [&hellip;]
+  template &lt;&gt; struct bit_not&lt;void&gt;;
+</code></pre><pre><code><ins>
+  bit_and() -&gt; bit_and&lt;&gt;;
+  bit_or()  -&gt; bit_or&lt;&gt;;
+  bit_xor() -&gt; bit_xor&lt;&gt;;
+  bit_not() -&gt; bit_not&lt;&gt;;
+</ins></code>
+</pre></body></html>
