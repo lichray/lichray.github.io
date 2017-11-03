@@ -40,10 +40,44 @@ ins { background-color: #A0FFA0 }
 s { background-color: #FFA0A0 }
 </style><table><tbody>
 <tr><th>Doc. no.:</th>    <td>DXXXXR0</td></tr>
-<tr><th>Date:</th>    <td>2017-10-29</td></tr>
+<tr><th>Date:</th>    <td>2017-11-02</td></tr>
 <tr><th>Audience:</th>    <td>EWG, LEWG</td></tr>
 <tr><th>Reply-to:</th>    <td>Zhihao Yuan &lt;zy at miator dot net&gt;</td></tr>
-</tbody></table><h1 style="" id="autox-decay-copy-in-the-language"><a title="autox-decay-copy-in-the-language" href="#autox-decay-copy-in-the-language" class="anchor hidden-xs"><span class="octicon octicon-link"></span></a>auto(x): <em>DECAY_COPY</em> in the language</h1><h2 style="" id="motivation"><a title="motivation" href="#motivation" class="anchor hidden-xs"><span class="octicon octicon-link"></span></a>Motivation</h2><p><em><code>DECAY_COPY(</code><em>E</em><code>)</code></em> has extensive uses in the standard and Ranges TS, to describe the behavior of transforming <em>E</em> into a prvalue with the same value as-if passed as a function argument by value.  It is possible to define such a facility in the library as worded by P0758R0<sup class="footnote-ref"><a href="#fn1" id="fnref1">[1]</a></sup>, while this paper proposes to use <code>auto(x)</code> and <code>auto{x}</code> for the purpose above by extending the language following the existing rules.</p><h2 style="" id="discussion"><a title="discussion" href="#discussion" class="anchor hidden-xs"><span class="octicon octicon-link"></span></a>Discussion</h2><p>Replacing the <code>char</code> in <code>char('a')</code> with <code>auto</code>, we obtain <code>auto('a')</code>, which is a function-style cast.  Such a formula also supports class template argument deduction in C++17.  Introducing <code>auto(x)</code> and <code>auto{x}</code> significantly improves the language consistency.  The following is a table showing how:</p><table>
+</tbody></table><h1 style="" id="autox-decay-copy-in-the-language"><a title="autox-decay-copy-in-the-language" href="#autox-decay-copy-in-the-language" class="anchor hidden-xs"><span class="octicon octicon-link"></span></a>auto(x): <em>DECAY_COPY</em> in the language</h1><h2 style="" id="introduction"><a title="introduction" href="#introduction" class="anchor hidden-xs"><span class="octicon octicon-link"></span></a>Introduction</h2><p>This paper proposes <code>auto(x)</code> and <code>auto{x}</code> for transforming <code>x</code> into a prvalue with the same value as-if passed as a function argument by value.  When users asked for this functionality, we claimed that the <em><code>DECAY_COPY</code></em> notion in the standard serves such purpose, but it is for exposition only.</p><h2 style="" id="motivation"><a title="motivation" href="#motivation" class="anchor hidden-xs"><span class="octicon octicon-link"></span></a>Motivation</h2><p>A generic way to obtain copies of an object in C++ is <code>auto a = x;</code> but this gives lvalue.  It is often convenient to obtain a copy as a prvalue.  For example:</p><ol>
+<li>
+<p>When using fluent interface for mutation,</p>
+<pre><code class="c++ hljs"><span class="hljs-selector-tag">parser</span><span class="hljs-selector-class">.add_option</span>(...)<span class="hljs-selector-class">.add_option</span>(...);
+</code></pre>
+<p>You may want to make changes on a fork.  Instead of writing</p>
+<pre><code class="c++ hljs"><span class="hljs-keyword">auto</span> subparser = parser;
+subparser.add_option(...);
+</code></pre>
+<p>, with this proposal, you can write</p>
+<pre><code class="c++ hljs"><span class="hljs-keyword">auto</span> subparser = <span class="hljs-keyword">auto</span>(parser).add_option(...);
+</code></pre>
+</li>
+<li>
+<p>When you are about to run into the trouble of mutating an object while using its subobject for reference,</p>
+<pre><code class="c++ hljs"><span class="hljs-comment">// paths = { /home/zy</span>
+<span class="hljs-comment">//           /home/zy/devel</span>
+<span class="hljs-comment">//           /home/zy/temp }</span>
+replace_prefixes(paths, paths[<span class="hljs-number">0</span>], <span class="hljs-string">"."</span>);
+<span class="hljs-comment">// paths = { .</span>
+<span class="hljs-comment">//           /home/zy/devel</span>
+<span class="hljs-comment">//           /home/zy/temp }</span>
+</code></pre>
+<p>, instead of writing</p>
+<pre><code class="c++ hljs"><span class="hljs-keyword">auto</span> p = paths[<span class="hljs-number">0</span>];
+replace_prefixes(paths, p, <span class="hljs-string">"."</span>);
+<span class="hljs-comment">// paths = { .</span>
+<span class="hljs-comment">//           ./devel</span>
+<span class="hljs-comment">//           ./temp }</span>
+</code></pre>
+<p>, with this proposal, you can write</p>
+<pre><code class="c++ hljs">replace_prefixes(paths, <span class="hljs-keyword">auto</span>(paths[<span class="hljs-number">0</span>]), <span class="hljs-string">"."</span>);
+</code></pre>
+</li>
+</ol><h2 style="" id="discussion"><a title="discussion" href="#discussion" class="anchor hidden-xs"><span class="octicon octicon-link"></span></a>Discussion</h2><p>Replacing the <code>char</code> in <code>char('a')</code> with <code>auto</code>, we obtain <code>auto('a')</code>, which is a function-style cast.  Such a formula also supports <em>injected-class-names</em> and class template argument deduction in C++17.  Introducing <code>auto(x)</code> and <code>auto{x}</code> significantly improves the language consistency.  The following table shows how:</p><table>
 <thead>
 <tr>
 <th>variable definition</th>
@@ -73,7 +107,7 @@ s { background-color: #FFA0A0 }
 <td>new ClassTemplate{x}</td>
 </tr>
 </tbody>
-</table><p>** <em>The type of <code>x</code> is a specialization of <code>ClassTemplate</code>.</em></p><p>With this proposal, all the cells in the table copy construct form <code>x</code> (given CTAD’s default behaviors) to obtain lvalues, prvalues, and pointers to objects, categorized by their columns.</p><p>Should we also allow <code>decltype(auto){x}</code>?  Maybe not.  It is a no-op, different from <code>new decltype(auto){x}</code>.</p><h2 style="" id="wording"><a title="wording" href="#wording" class="anchor hidden-xs"><span class="octicon octicon-link"></span></a>Wording</h2><p>The wording is relative to N4700.</p><p>Modify 8.2.3 [expr.type.conv]/1 as indicated:</p><blockquote>
+</table><p>** <em>The type of <code>x</code> is a specialization of <code>ClassTemplate</code>.</em></p><p>With this proposal, all the cells in the table copy construct form <code>x</code> (given CTAD’s default behavior) to obtain lvalues, prvalues, and pointers to objects, categorized by their columns.  That is why this paper does not recommend defining such a facility in the library<sup class="footnote-ref"><a href="#fn1" id="fnref1">[1]</a></sup>.</p><p>Should we also allow <code>decltype(auto){x}</code>?  Maybe not.  It is a no-op, different from <code>new decltype(auto){x}</code>.</p><h2 style="" id="implementation"><a title="implementation" href="#implementation" class="anchor hidden-xs"><span class="octicon octicon-link"></span></a>Implementation</h2><p>Try it out: <a target="_blank" href="https://godbolt.miator.net/g/uw8nKr">https://godbolt.miator.net/g/uw8nKr</a></p><h2 style="" id="wording"><a title="wording" href="#wording" class="anchor hidden-xs"><span class="octicon octicon-link"></span></a>Wording</h2><p>The wording is relative to N4700.</p><p>Modify 8.2.3 [expr.type.conv]/1 as indicated:</p><blockquote>
 <p>A <em>simple-type-specifier</em> (10.1.7.2) or <em>typename-specifier</em> (17.7) followed by a parenthesized optional <em>expression-list</em>
 or by a <em>braced-init-list</em> (the initializer) constructs a value of the specified type given the initializer. If the
 type is a placeholder for a deduced class type, it is replaced by the return type of the function selected by
@@ -98,12 +132,12 @@ declaration (10.1.7.4):</ins></p>
                 <i class="fa fa-bars"></i>
             </a>
             <ul id="ui-toc" class="ui-toc-dropdown dropdown-menu" aria-labelledby="tocLabel">
-                <div class="toc"><ul class="nav"><li class=""><a href="#autox-decay-copy-in-the-language">auto(x): DECAY_COPY in the language</a><ul class="nav"><li class=""><a href="#motivation">Motivation</a></li><li><a href="#discussion">Discussion</a></li><li><a href="#wording">Wording</a></li><li class=""><a href="#references">References</a></li></ul></li></ul></div><div class="toc-menu"><a class="expand-toggle" href="#">Expand all</a><a class="back-to-top" href="#">Back to top</a><a class="go-to-bottom" href="#">Go to bottom</a></div>
+                <div class="toc"><ul class="nav"><li class=""><a href="#autox-decay-copy-in-the-language">auto(x): DECAY_COPY in the language</a><ul class="nav"><li><a href="#introduction">Introduction</a></li><li><a href="#motivation">Motivation</a></li><li><a href="#discussion">Discussion</a></li><li><a href="#implementation">Implementation</a></li><li><a href="#wording">Wording</a></li><li class=""><a href="#references">References</a></li></ul></li></ul></div><div class="toc-menu"><a class="expand-toggle" href="#">Expand all</a><a class="back-to-top" href="#">Back to top</a><a class="go-to-bottom" href="#">Go to bottom</a></div>
             </ul>
         </div>
     </div>
     <div id="ui-toc-affix" class="ui-affix-toc ui-toc-dropdown unselectable hidden-print" data-spy="affix" style="top:17px;display:none;"  >
-        <div class="toc"><ul class="nav"><li class=""><a href="#autox-decay-copy-in-the-language">auto(x): DECAY_COPY in the language</a><ul class="nav"><li class=""><a href="#motivation">Motivation</a></li><li class=""><a href="#discussion">Discussion</a></li><li class=""><a href="#wording">Wording</a></li><li class=""><a href="#references">References</a></li></ul></li></ul></div><div class="toc-menu"><a class="expand-toggle" href="#">Expand all</a><a class="back-to-top" href="#">Back to top</a><a class="go-to-bottom" href="#">Go to bottom</a></div>
+        <div class="toc"><ul class="nav"><li class=""><a href="#autox-decay-copy-in-the-language">auto(x): DECAY_COPY in the language</a><ul class="nav"><li class=""><a href="#introduction">Introduction</a></li><li class=""><a href="#motivation">Motivation</a></li><li class=""><a href="#discussion">Discussion</a></li><li class=""><a href="#implementation">Implementation</a></li><li class=""><a href="#wording">Wording</a></li><li class=""><a href="#references">References</a></li></ul></li></ul></div><div class="toc-menu"><a class="expand-toggle" href="#">Expand all</a><a class="back-to-top" href="#">Back to top</a><a class="go-to-bottom" href="#">Go to bottom</a></div>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha256-U5ZEeKfGNOja007MMD3YBI0A3OSZOQbeG6z2f2Y0hu8=" crossorigin="anonymous" defer></script>
