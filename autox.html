@@ -107,7 +107,24 @@ replace_prefixes(paths, p, <span class="hljs-string">"."</span>);
 <td>new ClassTemplate{x}</td>
 </tr>
 </tbody>
-</table><p>** <em>The type of <code>x</code> is a specialization of <code>ClassTemplate</code>.</em></p><p>With this proposal, all the cells in the table copy construct form <code>x</code> (given CTAD’s default behavior) to obtain lvalues, prvalues, and pointers to objects, categorized by their columns.  That is why this paper does not recommend defining such a facility in the library<sup class="footnote-ref"><a href="#fn1" id="fnref1">[1]</a></sup>.</p><p>Should we also allow <code>decltype(auto){x}</code>?  Maybe not.  It is a no-op, different from <code>new decltype(auto){x}</code>.</p><h2 style="" id="implementation"><a title="implementation" href="#implementation" class="anchor hidden-xs"><span class="octicon octicon-link"></span></a>Implementation</h2><p>Try it out: <a target="_blank" href="https://godbolt.miator.net/g/uw8nKr">https://godbolt.miator.net/g/uw8nKr</a></p><h2 style="" id="wording"><a title="wording" href="#wording" class="anchor hidden-xs"><span class="octicon octicon-link"></span></a>Wording</h2><p>The wording is relative to N4700.</p><p>Modify 8.2.3 [expr.type.conv]/1 as indicated:</p><blockquote>
+</table><p>** <em>The type of <code>x</code> is a specialization of <code>ClassTemplate</code>.</em></p><p>With this proposal, all the cells in the table copy construct form <code>x</code> (given CTAD’s default behavior) to obtain lvalues, prvalues, and pointers to objects, categorized by their columns.  That is why this paper does not recommend defining such a facility in the library<sup class="footnote-ref"><a href="#fn1" id="fnref1">[1]</a></sup>.</p><p>Introducing <code>auto(x)</code> into the language even improves the library consistency:</p><table>
+<thead>
+<tr>
+<th>type function style</th>
+<th>expression style</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>void_t&lt;decltype(<em>expr</em>)&gt;</td>
+<td>decltype(void(<em>expr</em>))</td>
+</tr>
+<tr>
+<td>decay_t&lt;decltype(<em>expr</em>)&gt;</td>
+<td><mark>decltype(auto(<em>expr</em>))</mark></td>
+</tr>
+</tbody>
+</table><p>Should we also allow <code>decltype(auto){x}</code>?  Maybe not.  It is a no-op, different from <code>new decltype(auto){x}</code>.</p><h2 style="" id="implementation"><a title="implementation" href="#implementation" class="anchor hidden-xs"><span class="octicon octicon-link"></span></a>Implementation</h2><p>Try it out: <a target="_blank" href="https://godbolt.miator.net/g/uw8nKr">https://godbolt.miator.net/g/uw8nKr</a></p><h2 style="" id="wording"><a title="wording" href="#wording" class="anchor hidden-xs"><span class="octicon octicon-link"></span></a>Wording</h2><p>The wording is relative to N4700.</p><p>Modify 8.2.3 [expr.type.conv]/1 as indicated:</p><blockquote>
 <p>A <em>simple-type-specifier</em> (10.1.7.2) or <em>typename-specifier</em> (17.7) followed by a parenthesized optional <em>expression-list</em>
 or by a <em>braced-init-list</em> (the initializer) constructs a value of the specified type given the initializer. If the
 type is a placeholder for a deduced class type, it is replaced by the return type of the function selected by
