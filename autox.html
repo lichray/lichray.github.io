@@ -39,7 +39,7 @@
 ins { background-color: #A0FFA0 }
 s { background-color: #FFA0A0 }
 </style><table><tbody>
-<tr><th>Doc. no.:</th>    <td>D0849R0</td></tr>
+<tr><th>Doc. no.:</th>    <td>P0849R0</td></tr>
 <tr><th>Date:</th>    <td>2017-11-02</td></tr>
 <tr><th>Audience:</th>    <td>EWG, LEWG</td></tr>
 <tr><th>Reply-to:</th>    <td>Zhihao Yuan &lt;zy at miator dot net&gt;</td></tr>
@@ -121,7 +121,7 @@ replace_prefixes(paths, p, <span class="hljs-string">"."</span>);
 </tr>
 <tr>
 <td>decay_t&lt;decltype(<em>expr</em>)&gt;</td>
-<td><mark>decltype(auto(<em>expr</em>))</mark></td>
+<td><mark style="padding-left:0;padding-right:0">decltype(auto(<em>expr</em>))</mark></td>
 </tr>
 </tbody>
 </table><p>Should we also allow <code>decltype(auto){x}</code>?  Maybe not.  It is a no-op, different from <code>new decltype(auto){x}</code>.</p><h2 style="" id="implementation"><a title="implementation" href="#implementation" class="anchor hidden-xs"><span class="octicon octicon-link"></span></a>Implementation</h2><p>Try it out: <a target="_blank" href="https://godbolt.miator.net/g/uw8nKr">https://godbolt.miator.net/g/uw8nKr</a></p><h2 style="" id="wording"><a title="wording" href="#wording" class="anchor hidden-xs"><span class="octicon octicon-link"></span></a>Wording</h2><p>The wording is relative to N4700.</p><p>Modify 8.2.3 [expr.type.conv]/1 as indicated:</p><blockquote>
@@ -136,7 +136,7 @@ declaration (10.1.7.4):</ins></p>
 <p>A placeholder type can also be used in the <em>type-specifier-seq</em> in the <em>new-type-id</em> or <em>type-id</em> of a <em>new-expression</em>
 (8.3.4) and as a <em>decl-specifier</em> of the <em>parameter-declaration</em>’s <em>decl-specifier-seq</em> in a <em>template-parameter</em>
 (17.1).  <ins>The <code>auto</code> <em>type-specifier</em> can also be used as the <em>simple-type-specifier</em> in an explicit type conversion (functional notation) (8.2.3).</ins></p>
-</blockquote><h2 style="" id="references"><a title="references" href="#references" class="anchor hidden-xs"><span class="octicon octicon-link"></span></a>References</h2><hr class="footnotes-sep"><section class="footnotes">
+</blockquote><h2 style="" id="acknowledgments"><a title="acknowledgments" href="#acknowledgments" class="anchor hidden-xs"><span class="octicon octicon-link"></span></a>Acknowledgments</h2><p>Thank Arthur O’Dwyer and Billy O’Neal for criticizing an early draft of this paper.</p><h2 style="" id="references"><a title="references" href="#references" class="anchor hidden-xs"><span class="octicon octicon-link"></span></a>References</h2><hr class="footnotes-sep"><section class="footnotes">
 <ol class="footnotes-list">
 <li id="fn1" class="footnote-item"><p>Krügler, Daniel. P0758R0 <em>Implicit conversion traits and utility functions</em>.
 <a target="_blank" href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0758r0.html">http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0758r0.html</a> <a href="#fnref1" class="footnote-backref">↩︎</a></p>
@@ -149,12 +149,12 @@ declaration (10.1.7.4):</ins></p>
                 <i class="fa fa-bars"></i>
             </a>
             <ul id="ui-toc" class="ui-toc-dropdown dropdown-menu" aria-labelledby="tocLabel">
-                <div class="toc"><ul class="nav"><li class=""><a href="#autox-decay-copy-in-the-language">auto(x): DECAY_COPY in the language</a><ul class="nav"><li><a href="#introduction">Introduction</a></li><li><a href="#motivation">Motivation</a></li><li><a href="#discussion">Discussion</a></li><li><a href="#implementation">Implementation</a></li><li><a href="#wording">Wording</a></li><li class=""><a href="#references">References</a></li></ul></li></ul></div><div class="toc-menu"><a class="expand-toggle" href="#">Expand all</a><a class="back-to-top" href="#">Back to top</a><a class="go-to-bottom" href="#">Go to bottom</a></div>
+                <div class="toc"><ul class="nav"><li class=""><a href="#autox-decay-copy-in-the-language">auto(x): DECAY_COPY in the language</a><ul class="nav"><li><a href="#introduction">Introduction</a></li><li><a href="#motivation">Motivation</a></li><li><a href="#discussion">Discussion</a></li><li><a href="#implementation">Implementation</a></li><li><a href="#wording">Wording</a></li><li><a href="#acknowledgments">Acknowledgments</a></li><li class=""><a href="#references">References</a></li></ul></li></ul></div><div class="toc-menu"><a class="expand-toggle" href="#">Expand all</a><a class="back-to-top" href="#">Back to top</a><a class="go-to-bottom" href="#">Go to bottom</a></div>
             </ul>
         </div>
     </div>
     <div id="ui-toc-affix" class="ui-affix-toc ui-toc-dropdown unselectable hidden-print" data-spy="affix" style="top:17px;display:none;"  >
-        <div class="toc"><ul class="nav"><li class=""><a href="#autox-decay-copy-in-the-language">auto(x): DECAY_COPY in the language</a><ul class="nav"><li class=""><a href="#introduction">Introduction</a></li><li class=""><a href="#motivation">Motivation</a></li><li class=""><a href="#discussion">Discussion</a></li><li class=""><a href="#implementation">Implementation</a></li><li class=""><a href="#wording">Wording</a></li><li class=""><a href="#references">References</a></li></ul></li></ul></div><div class="toc-menu"><a class="expand-toggle" href="#">Expand all</a><a class="back-to-top" href="#">Back to top</a><a class="go-to-bottom" href="#">Go to bottom</a></div>
+        <div class="toc"><ul class="nav"><li class=""><a href="#autox-decay-copy-in-the-language">auto(x): DECAY_COPY in the language</a><ul class="nav"><li><a href="#introduction">Introduction</a></li><li class=""><a href="#motivation">Motivation</a></li><li class=""><a href="#discussion">Discussion</a></li><li class=""><a href="#implementation">Implementation</a></li><li class=""><a href="#wording">Wording</a></li><li><a href="#acknowledgments">Acknowledgments</a></li><li class=""><a href="#references">References</a></li></ul></li></ul></div><div class="toc-menu"><a class="expand-toggle" href="#">Expand all</a><a class="back-to-top" href="#">Back to top</a><a class="go-to-bottom" href="#">Go to bottom</a></div>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha256-U5ZEeKfGNOja007MMD3YBI0A3OSZOQbeG6z2f2Y0hu8=" crossorigin="anonymous" defer></script>
