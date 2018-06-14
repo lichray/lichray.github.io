@@ -37,7 +37,7 @@ del { text-decoration: line-through; background-color: #FFA0A0 }
 <blockquote>
 <p>[…]</p>
 
-<p><em>Remarks:</em> This constructor shall be defined as deleted unless <code>is_copy_constructible_v&lt;T&gt;</code> is <code>true</code>. If <code>is_trivially_copy_constructible_v&lt;T&gt;</code> is <code>true</code>, this constructor <del>shall be</del><ins>is</ins> a <code>constexpr</code> <ins>trivial</ins> constructor.</p>
+<p><em>Remarks:</em> This constructor shall be defined as deleted unless <code>is_copy_constructible_v&lt;T&gt;</code> is <code>true</code>. If <code>is_trivially_copy_constructible_v&lt;T&gt;</code> is <code>true</code>, this constructor <del>shall be a <code>constexpr</code> constructor</del><ins>is trivial</ins>.</p>
 </blockquote>
 
 <pre><code>constexpr optional(optional&amp;&amp; rhs) noexcept(see below );</code></pre>
@@ -45,7 +45,7 @@ del { text-decoration: line-through; background-color: #FFA0A0 }
 <blockquote>
 <p>[…]</p>
 
-<p><em>Remarks:</em> The expression inside <code>noexcept</code> is equivalent to <code>is_nothrow_move_constructible_v&lt;T&gt;</code>. This constructor shall not participate in overload resolution unless <code>is_move_constructible_v&lt;T&gt;</code> is <code>true</code>. If <code>is_trivially_move_constructible_v&lt;T&gt;</code> is <code>true</code>, this constructor <del>shall be</del><ins>is</ins> a <code>constexpr</code> <ins>trivial</ins> constructor.</p>
+<p><em>Remarks:</em> The expression inside <code>noexcept</code> is equivalent to <code>is_nothrow_move_constructible_v&lt;T&gt;</code>. This constructor shall not participate in overload resolution unless <code>is_move_constructible_v&lt;T&gt;</code> is <code>true</code>. If <code>is_trivially_move_constructible_v&lt;T&gt;</code> is <code>true</code>, this constructor <del>shall be a <code>constexpr</code> constructor</del><ins>is trivial</ins>.</p>
 </blockquote>
 
 <p>Modify 23.6.3.3 [optional.assign] as follows:</p>
