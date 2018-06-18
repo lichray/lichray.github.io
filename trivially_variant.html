@@ -22,7 +22,7 @@ del { text-decoration: line-through; background-color: #FFA0A0 }
 
 <p>Making <code>variant</code> and <code>optional</code> conditionally trivially copy constructible, trivially move constructible, trivially copy assignable, and trivially move assignable significantly improves codegen and performance when they are nested or being put into containers.</p>
 
-<p>Given the spirit of the resolution of <a href="http://cplusplus.github.io/LWG/lwg-defects.html#2900">LWG 2900</a> and feedback from implementers, this paper proposes a full-fledged approach shipped in libc<small>++</small>, MS STL, and libstd<small>++</small> that is to make the four operations individually trivial if all alternatives have the corresponding operations being trivial.</p>
+<p>Given the spirit of the resolution of <a href="http://cplusplus.github.io/LWG/lwg-defects.html#2900">LWG 2900</a> and feedback from implementers, this paper proposes a full-fledged approach shipped in libc<small>++</small>, MS STL, and libstdc<small>++</small> that is to make the four operations individually trivial if all alternatives have the corresponding operations being trivial.</p>
 
 <p>This change comes with a (good) potential ABI breakage in user’s code – a small enough trivially copyable <code>optional</code> &amp; <code>variant</code> took or returned by a function can be passed via register after applying the change, therefore we propose to accept this change as a defect report against C<small>++</small>17.</p>
 
