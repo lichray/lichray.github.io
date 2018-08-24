@@ -7,12 +7,12 @@
 <body><!-- maruku -o trivially_variant.html trivially_variant.md --><style type='text/css'>
 pre { margin: 0; }
 pre code { display: block; margin-left: 2em; }
-div { display: block; margin-left: 2em; }
+div code { display: block; margin-left: 2em; }
 ins { text-decoration: underline; background-color: #A0FFA0 }
 del { text-decoration: line-through; background-color: #FFA0A0 }
 </style><table><tbody>
-<tr><th>Doc. no.:</th>	<td>P0602R3</td></tr>
-<tr><th>Date:</th>	<td>2018-06-13</td></tr>
+<tr><th>Doc. no.:</th>	<td>D0602R4</td></tr>
+<tr><th>Date:</th>	<td>2018-08-23</td></tr>
 <tr><th>Audience:</th>	<td>Library Working Group</td></tr>
 <tr><th>Reply-to:</th>	<td>Zhihao Yuan &lt;zy at miator dot net&gt;</td></tr>
 </tbody></table>
@@ -28,9 +28,9 @@ del { text-decoration: line-through; background-color: #FFA0A0 }
 
 <h2 id="wording">Wording</h2>
 
-<p>This wording is relative to N4750.</p>
+<p>This wording is relative to N4762.</p>
 
-<p>Modify 23.6.3.1 [optional.ctor] as follows:</p>
+<p>Modify 19.6.3.1 [optional.ctor] as follows:</p>
 
 <pre><code>constexpr optional(const optional&amp; rhs);</code></pre>
 
@@ -48,10 +48,8 @@ del { text-decoration: line-through; background-color: #FFA0A0 }
 <p><em>Remarks:</em> The expression inside <code>noexcept</code> is equivalent to <code>is_nothrow_move_constructible_v&lt;T&gt;</code>. This constructor shall not participate in overload resolution unless <code>is_move_constructible_v&lt;T&gt;</code> is <code>true</code>. If <code>is_trivially_move_constructible_v&lt;T&gt;</code> is <code>true</code>, this constructor <del>shall be a <code>constexpr</code> constructor</del><ins>is trivial</ins>.</p>
 </blockquote>
 
-<p>Modify 23.6.3.3 [optional.assign] as follows:</p>
-
-<pre><code>optional&lt;T&gt;&amp; operator=(const optional&amp; rhs);</code></pre>
-
+<p>Modify 19.6.3.3 [optional.assign] as follows:</p>
+<div><code><ins>constexpr </ins>optional&lt;T&gt;&amp; operator=(const optional&amp; rhs);</code></div>
 <blockquote>
 <p>[…]</p>
 
@@ -59,9 +57,7 @@ del { text-decoration: line-through; background-color: #FFA0A0 }
 <tt>is_trivially_copy_constructible_v&lt;T&gt; &amp;&amp; is_trivially_copy_assignable_v&lt;T&gt; &amp;&amp; is_trivially_destructible_v&lt;T&gt;</tt>
 is <code>true</code>, this assignment operator is trivial.</ins></p>
 </blockquote>
-
-<pre><code>optional&lt;T&gt;&amp; operator=(optional&amp;&amp; rhs) noexcept(see below );</code></pre>
-
+<div><code><ins>constexpr </ins>optional&lt;T&gt;&amp; operator=(optional&amp;&amp; rhs) noexcept(see below );</code></div>
 <blockquote>
 <p>[…]</p>
 
@@ -70,10 +66,23 @@ is <code>true</code>, this assignment operator is trivial.</ins></p>
 is <code>true</code>, this assignment operator is trivial.</ins></p>
 </blockquote>
 
-<p>Modify 23.7.3.1 [variant.ctor] as follows:</p>
-
-<pre><code>variant(const variant&amp; w);</code></pre>
-
+<p>Update 19.6.3 [optional.optional] synopsis:</p>
+<div><code>namespace std {</code></div>
+<blockquote>
+<p>[…]</p>
+</blockquote>
+<div><code>
+&nbsp;&nbsp;<i>// 19.6.3.3, assignment</i><br />
+&nbsp;&nbsp;optional&amp; operator=(nullopt_t) noexcept;<br />
+&nbsp;&nbsp;<ins>constexpr </ins>optional&lt;T&gt;&amp; operator=(const optional&amp; rhs);<br />
+&nbsp;&nbsp;<ins>constexpr </ins>optional&lt;T&gt;&amp; operator=(optional&amp;&amp; rhs) noexcept(see below );
+</code></div>
+<blockquote>
+<p>[…]</p>
+</blockquote>
+<div><code>}</code></div>
+<p>Modify 19.7.3.1 [variant.ctor] as follows:</p>
+<div><code><ins>constexpr </ins>variant(const variant&amp; w);</code></div>
 <blockquote>
 <p>[…]</p>
 
@@ -81,9 +90,7 @@ is <code>true</code>, this assignment operator is trivial.</ins></p>
 <tt>is_trivially_copy_constructible_v&lt;T</tt><i><sub>i</sub></i><tt>&gt;</tt>
 is <code>true</code> for all <em>i</em>, this constructor is trivial.</ins></p>
 </blockquote>
-
-<pre><code>variant(variant&amp;&amp; w) noexcept(see below );</code></pre>
-
+<div><code><ins>constexpr </ins>variant(variant&amp;&amp; w) noexcept(see below );</code></div>
 <blockquote>
 <p>[…]</p>
 
@@ -92,10 +99,8 @@ is <code>true</code> for all <em>i</em>, this constructor is trivial.</ins></p>
 is <code>true</code> for all <em>i</em>, this constructor is trivial.</ins></p>
 </blockquote>
 
-<p>Modify 23.7.3.3 [variant.assign] as follows:</p>
-
-<pre><code>variant&amp; operator=(const variant&amp; rhs);</code></pre>
-
+<p>Modify 19.7.3.3 [variant.assign] as follows:</p>
+<div><code><ins>constexpr </ins>variant&amp; operator=(const variant&amp; rhs);</code></div>
 <blockquote>
 <p>[…]</p>
 
@@ -103,9 +108,7 @@ is <code>true</code> for all <em>i</em>, this constructor is trivial.</ins></p>
 <tt>is_trivially_copy_constructible_v&lt;T</tt><i><sub>i</sub></i><tt>&gt; &amp;&amp; is_trivially_copy_assignable_v&lt;T</tt><i><sub>i</sub></i><tt>&gt; &amp;&amp; is_trivially_destructible_v&lt;T</tt><i><sub>i</sub></i><tt>&gt;</tt>
 is <code>true</code> for all <em>i</em>, this assignment operator is trivial.</ins> […]</p>
 </blockquote>
-
-<pre><code>variant&amp; operator=(variant&amp;&amp; rhs) noexcept(see below );</code></pre>
-
+<div><code><ins>constexpr </ins>variant&amp; operator=(variant&amp;&amp; rhs) noexcept(see below );</code></div>
 <blockquote>
 <p>[…]</p>
 
@@ -114,6 +117,29 @@ is <code>true</code> for all <em>i</em>, this assignment operator is trivial.</i
 is <code>true</code> for all <em>i</em>, this assignment operator is trivial.</ins> The expression inside <code>noexcept</code> is equivalent to: […]</p>
 </blockquote>
 
+<p>Update 19.7.3 [variant.variant] synopsis:</p>
+<div><code>namespace std {</code></div>
+<blockquote>
+<p>[…]</p>
+</blockquote>
+<div><code>
+&nbsp;&nbsp;<i>// 19.7.3.1, constructors</i><br />
+&nbsp;&nbsp;constexpr variant() noexcept(see below );<br />
+&nbsp;&nbsp;<ins>constexpr </ins>variant(const variant&amp; w);<br />
+&nbsp;&nbsp;<ins>constexpr </ins>variant(variant&amp;&amp; w) noexcept(see below );
+</code></div>
+<blockquote>
+<p>[…]</p>
+</blockquote>
+<div><code>
+&nbsp;&nbsp;<i>// 19.7.3.3, assignment</i><br />
+&nbsp;&nbsp;<ins>constexpr </ins>variant&amp; operator=(const variant&amp; rhs);<br />
+&nbsp;&nbsp;<ins>constexpr </ins>variant&amp; operator=(variant&amp;&amp; rhs) noexcept(see below );
+</code></div>
+<blockquote>
+<p>[…]</p>
+</blockquote>
+<div><code>}</code></div>
 <h2 id="acknowledgments">Acknowledgments</h2>
 
 <p>Thanks Casey Carter for evolving the implementations and explaining the results.</p>
